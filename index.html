@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>LLM Chat</title>
+  <style>
+    body { font-family: sans-serif; background: #f9f9f9; }
+    #chat { max-width: 500px; margin: 30px auto; padding: 15px; background: #fff; border: 1px solid #ccc; border-radius: 8px; }
+    .msg { margin: 5px 0; padding: 8px; border-radius: 6px; }
+    .user { background: #d1e7ff; text-align: right; }
+    .bot  { background: #eee; text-align: left; }
+  </style>
+</head>
+<body>
+  <div id="chat"></div>
+  <div style="max-width: 500px; margin: 10px auto; display: flex;">
+    <input id="input" type="text" placeholder="Напиши сообщение..." style="flex:1; padding:8px;">
+    <button onclick="sendMessage()">Отправить</button>
+  </div>
+
+  <script>
+    // Настройки по умолчанию
+    const webhookUrl = "https://YOUR_N8N_HOST/webhook/chat"; // заменишь на свой n8n webhook
+    const defaultUserName = "Просфирий";
+    const defaultSessionId = "123123123";
+    const defaultToken = "token001";
+
+    async function sendMessage() {
+      const input = document.getElementById("input");
+      const message = input.value.trim();
+      if (!message) return;
+      appendMessage("user", message);
+      input.value = "";
+
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_chat_name: defaultUserName,
+          chat_session_id: defaultSessionId,
+          chat_message: message,
+          chat_token: defaultToken
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      appendMessage("bot", data.reply || "Ошибка: нет ответа");
+    }
+
+    function appendMessage(role, text) {
+      const div = document.createElement("div");
+      div.className = "msg " + role;
+      div.innerText = text;
+      document.getElementById("chat").appendChild(div);
+      div.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  </script>
+</body>
+</html>
